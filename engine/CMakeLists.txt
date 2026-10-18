@@ -1,6 +1,7 @@
 add_library(http_engine STATIC
     src/server.cpp
     src/tcp_listener.cpp
+    src/http_parser.cpp
 )
 
 target_include_directories(http_engine
