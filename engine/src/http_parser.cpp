@@ -18,8 +18,7 @@ namespace http_engine
             return true;
 
         constexpr std::string_view punctucation = "!#$%&'*+-.^_`|~";
-
-        return punctucation.find(static_cast<char>(ch) != std::string_view::npos);
+        return punctucation.find(static_cast<char>(ch)) != std::string_view::npos;
     }
     bool valid_method(std::string_view method)
     {
@@ -58,6 +57,8 @@ namespace http_engine
         const char *begin = value.data();
         const char *end = begin + value.size();
 
+        //std::from_chars parses characters from a range into a number. 
+        //It doesn't need a null-terminated string, and it reports both whether parsing succeeded and where it stopped.
         auto [ptr, error] = std::from_chars(begin, end, parsed);
 
         if (error != std::errc{} || ptr != end)
@@ -169,10 +170,6 @@ namespace http_engine
         parsed_request.m_method = std::string(method);
         parsed_request.m_path = std::string(path);
         parsed_request.m_version = std::string(version);
-
-        std::cout << "Method : " << parsed_request.m_method << std::endl;
-        std::cout << "Path : " << parsed_request.m_path << std::endl;
-        std::cout << "Version : " << parsed_request.m_version << std::endl;
 
         // ----- Parse headers -----
 
