@@ -4,7 +4,9 @@
 #include "response_serializer.hpp"
 #include <cassert>
 #include <string>
+#include <nlohmann/json.hpp>
 
+using json = nlohmann::json;
 void TestHttpRequestResponse()
 {
     /*
@@ -93,10 +95,16 @@ void TestHttpRequestResponse()
 
 int main()
 {
-    // http_engine::Server myserver(8080);
-    // myserver.run();
+    http_engine::Server myserver(8080);
+    myserver.run();
 
-    TestHttpRequestResponse();
+    // TestHttpRequestResponse();
 
+    // json input;
+    // input["user_name"] = "abc";
+    // input["email"] = "abc@gmail.com";
+    // input["posts"]["data"] = {"001", "002", "003"};
+
+    // std::cout<<input<<std::endl;
     return 0;
 }

@@ -4,6 +4,11 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>
+#include "http_parser.hpp"
+#include "response_serializer.hpp"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 namespace http_engine
 {
@@ -75,14 +80,46 @@ namespace http_engine
         }
 
         std::string received(buffer, bytes_received);
-        std::cout << "Data recieved from client: " << received << "\n";
+        http_engine::HttpParser parser;
+        http_engine::HttpRequest request;
+        http_engine::HttpResponse response;
+        http_engine::ResponseSerializer serializer;
+        std::size_t bytes_consumed = 0;
 
-        const std::string response = "Hello from C++ HTTP Server...!'\n";
+        if (parser.parse(received, request, bytes_consumed) != http_engine::ParseResult::COMPLETE)
+        {
+            std::cout << "Failed to parse Input request try again...\n";
+            return;
+        }
+
+        std::cout << "Input request recieved from client: " << "\n";
+        request.printRequest();
+
+        if (request.m_headers["content-type"] == "text/plain")
+        {
+            const std::string response_body = "Hello from C++ HTTP Server...!'\n";
+            response.m_headers["Content-Type"] = "text/plain";
+            response.m_body = response_body;
+        }
+        else if (request.m_headers["content-type"] == "application/json")
+        {
+            json jsonInput = json::parse(request.m_body);
+
+            response.m_headers["Content-Type"] = "application/json";
+            json jsonOutput;
+            jsonOutput["user_name"] = "abc";
+            jsonOutput["email"] = "abc@gmail.com";
+            jsonOutput["posts"]["data"] = {"001", "002", "003"};
+
+            response.m_body = jsonOutput.dump(); // serialize json object into string
+        }
+
+        const std::string raw_resp = serializer.serialize(response);
 
         std::size_t total_sent = 0;
-        while (total_sent < response.size())
+        while (total_sent < raw_resp.size())
         {
-            ssize_t bytes_sent = send(client.fd, response.data() + total_sent, response.size() - total_sent, MSG_NOSIGNAL);
+            ssize_t bytes_sent = send(client.fd, raw_resp.data() + total_sent, raw_resp.size() - total_sent, MSG_NOSIGNAL);
 
             if (bytes_sent == -1 && errno == EINTR)
             {
