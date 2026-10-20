@@ -2,6 +2,7 @@
 #include <iostream>
 #include "http_parser.hpp"
 #include "response_serializer.hpp"
+#include "string_consts.hpp"
 #include <cassert>
 #include <string>
 #include <nlohmann/json.hpp>
@@ -83,8 +84,9 @@ void TestHttpRequestResponse()
 
     http_engine::HttpResponse response;
     response.m_status_code = 200;
-    response.m_reason = "OK";
-    response.m_headers["Content-Type"] = "text/plain";
+    response.m_reason = http_engine::string_consts::reason_ok;
+    response.m_headers[http_engine::string_consts::content_type_header] =
+        http_engine::string_consts::media_type_text_plain;
     response.m_body = "Hello, World!";
 
     http_engine::ResponseSerializer serializer;

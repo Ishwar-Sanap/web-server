@@ -6,6 +6,7 @@
 #include <system_error>
 #include <cctype>
 #include <charconv>
+#include "string_consts.hpp"
 
 namespace http_engine
 {
@@ -164,7 +165,7 @@ namespace http_engine
         if (!valid_method(method) || path.find_first_of(" \t\r\n") != std::string_view::npos || path.find_first_of("\r\n") != std::string_view::npos)
             return ParseResult::BADREQUEST;
 
-        if (version != "HTTP/1.0" && version != "HTTP/1.1")
+        if (version != string_consts::http_version_1_0 && version != string_consts::http_version_1_1)
             return ParseResult::BADREQUEST;
 
         parsed_request.m_method = std::string(method);
@@ -215,7 +216,7 @@ namespace http_engine
                 return ParseResult::BADREQUEST;
             }
 
-            if (lower_name == "content-length")
+            if (lower_name == string_consts::content_length_header_lower)
             {
                 std::size_t parsed_length = 0;
 
@@ -238,7 +239,8 @@ namespace http_engine
         }
 
         // HTTP/1.1 request must includes exacly one Host header.
-        if (parsed_request.m_version == "HTTP/1.1" && parsed_request.m_headers.find("host") == parsed_request.m_headers.end())
+        if (parsed_request.m_version == string_consts::http_version_1_1 &&
+            parsed_request.m_headers.find(string_consts::host_header) == parsed_request.m_headers.end())
             return ParseResult::BADREQUEST;
 
         if (content_length > MAX_BODY_SIZE)

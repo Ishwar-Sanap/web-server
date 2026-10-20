@@ -1,4 +1,5 @@
 #include "response_serializer.hpp"
+#include "string_consts.hpp"
 #include <stdexcept>
 
 namespace http_engine
@@ -6,7 +7,8 @@ namespace http_engine
 
     std::string ResponseSerializer::serialize(const HttpResponse &response) const
     {
-        if (response.m_version != "HTTP/1.0" && response.m_version != "HTTP/1.1")
+        if (response.m_version != string_consts::http_version_1_0 &&
+            response.m_version != string_consts::http_version_1_1)
             throw std::invalid_argument("Unsupported HTTP version");
 
         if (response.m_status_code < 100 || response.m_status_code > 599)
@@ -29,7 +31,8 @@ namespace http_engine
 
             output += name + ": " + value + "\r\n";
 
-            if (name == "Content-Length" || name == "content-length")
+            if (name == string_consts::content_length_header ||
+                name == string_consts::content_length_header_lower)
                 has_content_length = true;
         }
 
