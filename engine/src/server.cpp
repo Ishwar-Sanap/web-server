@@ -17,7 +17,10 @@ namespace http_engine
     Server::Server(int port) : m_listner(port)
     {
     }
-
+    void Server::setRouter(std::shared_ptr<web_core::Router> router)
+    {
+        m_router = router;
+    }
     void Server::run()
     {
         if (!m_listner.start())
@@ -168,7 +171,7 @@ namespace http_engine
                 {
                     std::cerr << e.what() << '\n';
 
-                    //Added here temporarily to send Bad request response.
+                    // Added here temporarily to send Bad request response.
                     response.m_status_code = 400;
                     response.m_reason = string_consts::reason_bad_request;
                     response.m_headers[string_consts::content_type_header] = string_consts::media_type_application_json;
@@ -180,9 +183,23 @@ namespace http_engine
             }
             else
             {
-                const std::string response_body = "Hello from C++ HTTP Server...!'\n";
-                response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
-                response.m_body = response_body;
+                bool pathFound = m_router->dispatch(request, response);
+
+                if (!pathFound)
+                {
+                    const std::string response_body = "URL not found";
+                    response.m_status_code = 404;
+                    response.m_reason = string_consts::reason_not_found;
+                    response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
+                    response.m_body = response_body;
+                }
+                else
+                {
+
+                    // const std::string response_body = "Hello from C++ HTTP Server...!'\n";
+                    // response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
+                    // response.m_body = response_body;
+                }
             }
         }
 

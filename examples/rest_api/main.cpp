@@ -1,18 +1,27 @@
 #include <iostream>
-#include "http_engine/server.hpp"
-#include "http_engine/http_parser.hpp"
-#include "http_engine/response_serializer.hpp"
-#include "http_engine/string_consts.hpp"
 #include <cassert>
 #include <string>
 #include <nlohmann/json.hpp>
+#include "web_core/app.hpp"
 
 using json = nlohmann::json;
 
 int main()
 {
-    http_engine::Server myserver(8080);
-    myserver.run();
+    // http_engine::Server myserver(8080);
+    // myserver.run();
 
+    web_core::App app;
+
+    app.get("/hello", [](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
+        res.m_body = "Hello, World!";
+    });
+
+    app.get("/hello/:Id", [](const http_engine::HttpRequest &req, http_engine::HttpResponse &res, const web_core::RouteParams& params) {
+        std::string id = params.at("Id");
+        res.m_body = "Hello, World! " + id;
+    });
+
+    app.listen(8080);
     return 0;
 }

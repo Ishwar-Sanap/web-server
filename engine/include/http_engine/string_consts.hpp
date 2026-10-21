@@ -16,4 +16,5 @@ namespace http_engine::string_consts
 
     inline constexpr char reason_ok[] = "OK";
     inline constexpr char reason_bad_request[] = "Bad Request";
+    inline constexpr char reason_not_found[] = "Not Found";
 }

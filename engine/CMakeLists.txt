@@ -11,6 +11,9 @@ add_library(http_engine STATIC
     src/response_serializer.cpp
 )
 
-target_include_directories(http_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(http_engine PUBLIC 
+${CMAKE_CURRENT_SOURCE_DIR}/include
+${CMAKE_SOURCE_DIR}/framework/include
+)
 
 target_link_libraries(http_engine PRIVATE nlohmann_json::nlohmann_json)
