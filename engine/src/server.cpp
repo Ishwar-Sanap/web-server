@@ -1,12 +1,12 @@
-#include "server.hpp"
 #include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "http_parser.hpp"
-#include "response_serializer.hpp"
-#include "string_consts.hpp"
+#include "http_engine/server.hpp"
+#include "http_engine/http_parser.hpp"
+#include "http_engine/response_serializer.hpp"
+#include "http_engine/string_consts.hpp"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -150,14 +150,7 @@ namespace http_engine
         {
             // std::cout << "Input request recieved from client: " << "\n";
             // request.printRequest();
-
-            if (request.m_headers[string_consts::content_type_header_lower] == string_consts::media_type_text_plain)
-            {
-                const std::string response_body = "Hello from C++ HTTP Server...!'\n";
-                response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
-                response.m_body = response_body;
-            }
-            else if (request.m_headers[string_consts::content_type_header_lower] == string_consts::media_type_application_json)
+            if (request.m_headers[string_consts::content_type_header_lower] == string_consts::media_type_application_json)
             {
                 try
                 {
@@ -184,6 +177,12 @@ namespace http_engine
                     jsonOutput["message"] = "Failed to parse JSON data.";
                     response.m_body = jsonOutput.dump(); // serialize json object into string
                 }
+            }
+            else
+            {
+                const std::string response_body = "Hello from C++ HTTP Server...!'\n";
+                response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
+                response.m_body = response_body;
             }
         }
 
