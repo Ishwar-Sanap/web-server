@@ -15,6 +15,16 @@ namespace http_engine::string_consts
     inline constexpr char media_type_application_json[] = "application/json";
 
     inline constexpr char reason_ok[] = "OK";
+    inline constexpr char reason_created[] = "Created";
+    inline constexpr char reason_accepted[] = "Accepted";
     inline constexpr char reason_bad_request[] = "Bad Request";
+    inline constexpr char reason_unauthorized[] = "Unauthorized";
+    inline constexpr char reason_forbidden[] = "Forbidden";
     inline constexpr char reason_not_found[] = "Not Found";
+    inline constexpr char reason_too_maany_requests[] = "Too Many Requests";
+    inline constexpr char reason_server_error[] = "Internal Server Error";
+    inline constexpr char reason_bad_gateway[] = "Bad Gateway";
+    inline constexpr char reason_service_unavailable[] = "Service Unavailable";
+    inline constexpr char reason_gateway_timeout[] = "Gateway Timeout";
+    inline constexpr char reason_unknown[] = "Unknown";
 }

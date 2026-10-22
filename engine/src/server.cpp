@@ -140,66 +140,16 @@ namespace http_engine
         }
         else if (read_result == http_engine::EngineReturnValue::BAD_REQUEST)
         {
-            response.m_status_code = 400;
-            response.m_reason = string_consts::reason_bad_request;
-            response.m_headers[string_consts::content_type_header] = string_consts::media_type_application_json;
-            json jsonOutput;
-            jsonOutput["error"] = string_consts::reason_bad_request;
-            jsonOutput["message"] = "The request body contains invalid JSON or missing required fields.";
-
-            response.m_body = jsonOutput.dump(); // serialize json object into string
+            response.status(400).send("The request body contains invalid JSON or missing required fields.");
         }
         else if (read_result == http_engine::EngineReturnValue::SUCCESS)
         {
-            // std::cout << "Input request recieved from client: " << "\n";
-            // request.printRequest();
-            if (request.header(string_consts::content_type_header_lower) == string_consts::media_type_application_json)
+            bool pathFound = m_router->dispatch(request, response);
+            
+            if (!pathFound)
             {
-                try
-                {
-                    json jsonInput = json::parse(request.body());
-
-                    response.m_headers[string_consts::content_type_header] = string_consts::media_type_application_json;
-                    json jsonOutput;
-                    jsonOutput["user_name"] = "abc";
-                    jsonOutput["email"] = "abc@gmail.com";
-                    jsonOutput["posts"]["data"] = {"001", "002", "003"};
-
-                    response.m_body = jsonOutput.dump(); // serialize json object into string
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << '\n';
-
-                    // Added here temporarily to send Bad request response.
-                    response.m_status_code = 400;
-                    response.m_reason = string_consts::reason_bad_request;
-                    response.m_headers[string_consts::content_type_header] = string_consts::media_type_application_json;
-                    json jsonOutput;
-                    jsonOutput["error"] = string_consts::reason_bad_request;
-                    jsonOutput["message"] = "Failed to parse JSON data.";
-                    response.m_body = jsonOutput.dump(); // serialize json object into string
-                }
-            }
-            else
-            {
-                bool pathFound = m_router->dispatch(request, response);
-
-                if (!pathFound)
-                {
-                    const std::string response_body = "URL not found";
-                    response.m_status_code = 404;
-                    response.m_reason = string_consts::reason_not_found;
-                    response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
-                    response.m_body = response_body;
-                }
-                else
-                {
-
-                    // const std::string response_body = "Hello from C++ HTTP Server...!'\n";
-                    // response.m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
-                    // response.m_body = response_body;
-                }
+                const std::string body = "Cannot " + request.method() + " " + request.path();
+                response.status(400).send(body);
             }
         }
 
