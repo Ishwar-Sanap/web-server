@@ -17,7 +17,6 @@ namespace web_core
         App();
         void listen(int port);
         void get(const std::string &pattern, Router::Handler handler);
-        void get(const std::string &pattern, Router::QueryParamHandler handler);
         // void post();
     };
 }

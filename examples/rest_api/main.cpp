@@ -17,8 +17,8 @@ int main()
         res.m_body = "Hello, World!";
     });
 
-    app.get("/hello/:Id", [](const http_engine::HttpRequest &req, http_engine::HttpResponse &res, const web_core::RouteParams& params) {
-        std::string id = params.at("Id");
+    app.get("/hello/:Id", [](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
+        const std::string id = req.param("Id");
         res.m_body = "Hello, World! " + id;
     });
 

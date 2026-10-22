@@ -153,11 +153,11 @@ namespace http_engine
         {
             // std::cout << "Input request recieved from client: " << "\n";
             // request.printRequest();
-            if (request.m_headers[string_consts::content_type_header_lower] == string_consts::media_type_application_json)
+            if (request.header(string_consts::content_type_header_lower) == string_consts::media_type_application_json)
             {
                 try
                 {
-                    json jsonInput = json::parse(request.m_body);
+                    json jsonInput = json::parse(request.body());
 
                     response.m_headers[string_consts::content_type_header] = string_consts::media_type_application_json;
                     json jsonOutput;

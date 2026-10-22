@@ -7,7 +7,7 @@
 #include <charconv>
 #include "http_engine/http_parser.hpp"
 #include "http_engine/string_consts.hpp"
-
+#include <unordered_map>
 namespace http_engine
 {
     constexpr std::size_t MAX_HEADER_SIZE = 16 * 1024; // 16 KiB
@@ -58,8 +58,8 @@ namespace http_engine
         const char *begin = value.data();
         const char *end = begin + value.size();
 
-        //std::from_chars parses characters from a range into a number. 
-        //It doesn't need a null-terminated string, and it reports both whether parsing succeeded and where it stopped.
+        // std::from_chars parses characters from a range into a number.
+        // It doesn't need a null-terminated string, and it reports both whether parsing succeeded and where it stopped.
         auto [ptr, error] = std::from_chars(begin, end, parsed);
 
         if (error != std::errc{} || ptr != end)
@@ -130,7 +130,7 @@ namespace http_engine
             return ParseResult::BADREQUEST;
         }
 
-        HttpRequest parsed_request;
+        // HttpRequest parsed_request;
 
         // ----- Parse request line -----
         const std::size_t request_line_end = raw_request.find("\r\n");
@@ -168,15 +168,16 @@ namespace http_engine
         if (version != string_consts::http_version_1_0 && version != string_consts::http_version_1_1)
             return ParseResult::BADREQUEST;
 
-        parsed_request.m_method = std::string(method);
-        parsed_request.m_path = std::string(path);
-        parsed_request.m_version = std::string(version);
+        // parsed_request.m_method = std::string(method);
+        // parsed_request.m_path = std::string(path);
+        // parsed_request.m_version = std::string(version);
 
         // ----- Parse headers -----
 
         std::size_t position = request_line_end + 2;
         std::size_t content_length = 0;
         bool has_content_length = false;
+        std::unordered_map<std::string, std::string> headers;
 
         while (position < header_end)
         {
@@ -232,15 +233,15 @@ namespace http_engine
             }
 
             // stored name and value in the map
-            if (!parsed_request.m_headers.emplace(lower_name, std::string(value)).second)
+            if (!headers.emplace(lower_name, std::string(value)).second)
                 return ParseResult::BADREQUEST;
 
             position = line_end + 2;
         }
 
         // HTTP/1.1 request must includes exacly one Host header.
-        if (parsed_request.m_version == string_consts::http_version_1_1 &&
-            parsed_request.m_headers.find(string_consts::host_header) == parsed_request.m_headers.end())
+        if (std::string(version) == string_consts::http_version_1_1 &&
+            headers.find(string_consts::host_header) == headers.end())
             return ParseResult::BADREQUEST;
 
         if (content_length > MAX_BODY_SIZE)
@@ -258,9 +259,10 @@ namespace http_engine
         if (raw_request.size() < total_size)
             return ParseResult::INCOMPLETE;
 
-        parsed_request.m_body = std::string(raw_request.substr(body_start, content_length));
+        std::string body = std::string(raw_request.substr(body_start, content_length));
 
         // valid request available
+        HttpRequest parsed_request(std::string(method), std::string(path), std::string(version), std::move(headers), body);
         request = std::move(parsed_request);
         bytes_consumed = total_size;
 

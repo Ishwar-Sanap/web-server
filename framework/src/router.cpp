@@ -24,11 +24,7 @@ namespace web_core
 
     void Router::addRoute(const std::string &method, const std::string &pattern, Handler handler)
     {
-        m_routes.push_back({method, pattern, std::move(handler), {}});
-    }
-    void Router::addRoute(const std::string &method, const std::string &pattern, QueryParamHandler handler)
-    {
-        m_routes.push_back({method, pattern, {}, std::move(handler)});
+        m_routes.push_back({method, pattern, std::move(handler)});
     }
 
     // Compare the incoming path with the registered pattern one segment at a time
@@ -73,12 +69,12 @@ namespace web_core
         return true;
     }
 
-    bool Router::dispatch(const http_engine::HttpRequest &request, http_engine::HttpResponse &response) const
+    bool Router::dispatch(http_engine::HttpRequest &request, http_engine::HttpResponse &response) const
     {
         // First pass: exact routes take precedence.
         for (const auto &route : m_routes)
         {
-            if (route.method == request.m_method && route.pattern == request.m_path)
+            if (route.method == request.method() && route.pattern == request.path())
             {
                 route.handler(request, response);
                 return true;
@@ -88,16 +84,17 @@ namespace web_core
         // Second pass: parameterized routes.
         for (const auto &route : m_routes)
         {
-            if (route.method != request.m_method)
+            if (route.method != request.method())
             {
                 continue;
             }
 
             RouteParams params;
 
-            if (matchPath(route.pattern, request.m_path, params))
+            if (matchPath(route.pattern, request.path(), params))
             {
-                route.paramHandler(request, response, params);
+                request.setParams(std::move(params));
+                route.handler(request, response);
                 return true;
             }
         }

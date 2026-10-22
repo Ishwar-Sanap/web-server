@@ -18,9 +18,4 @@ namespace web_core
     {
         m_router->addRoute("GET", pattern, handler);
     }
-
-    void App::get(const std::string &pattern, Router::QueryParamHandler handler)
-    {
-        m_router->addRoute("GET", pattern, handler);
-    }
 }
