@@ -18,4 +18,24 @@ namespace web_core
     {
         m_router->addRoute("GET", pattern, handler);
     }
+
+    void App::post(const std::string &pattern, Router::Handler handler)
+    {
+        m_router->addRoute("POST", pattern, handler);
+    }
+
+    void App::put(const std::string &pattern, Router::Handler handler)
+    {
+        m_router->addRoute("PUT", pattern, handler);
+    }
+
+    void App::patch(const std::string &pattern, Router::Handler handler)
+    {
+        m_router->addRoute("PATCH", pattern, handler);
+    }
+
+    void App::delete_(const std::string &pattern, Router::Handler handler)
+    {
+        m_router->addRoute("DELETE", pattern, handler);
+    }
 }

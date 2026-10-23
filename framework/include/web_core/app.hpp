@@ -17,6 +17,9 @@ namespace web_core
         App();
         void listen(int port);
         void get(const std::string &pattern, Router::Handler handler);
-        // void post();
+        void post(const std::string &pattern, Router::Handler handler);
+        void put(const std::string &pattern, Router::Handler handler);
+        void patch(const std::string &pattern, Router::Handler handler);
+        void delete_(const std::string &pattern, Router::Handler handler);
     };
 }
