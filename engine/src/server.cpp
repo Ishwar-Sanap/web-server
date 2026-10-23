@@ -140,16 +140,32 @@ namespace http_engine
         }
         else if (read_result == http_engine::EngineReturnValue::BAD_REQUEST)
         {
-            response.status(400).send("The request body contains invalid JSON or missing required fields.");
+            response.status(400).send("Bad Request");
         }
         else if (read_result == http_engine::EngineReturnValue::SUCCESS)
         {
-            bool pathFound = m_router->dispatch(request, response);
-            
-            if (!pathFound)
+            const web_core::Router::DispatchResult result = m_router->dispatch(request, response);
+
+            if (result.status == web_core::Router::DispatchResult::Status::NOT_FOUND)
             {
                 const std::string body = "Cannot " + request.method() + " " + request.path();
-                response.status(400).send(body);
+                response.status(404).send(body);
+            }
+            else if (result.status == web_core::Router::DispatchResult::Status::METHOD_NOT_ALLOWED)
+            {
+                std::string allowed_methods;
+                for (const std::string &method : result.allowed_methods)
+                {
+                    if (!allowed_methods.empty())
+                    {
+                        allowed_methods += ", ";
+                    }
+                    allowed_methods += method;
+                }
+
+                response.setHeader("Allow", allowed_methods)
+                    .status(405)
+                    .send("Method Not Allowed");
             }
         }
 

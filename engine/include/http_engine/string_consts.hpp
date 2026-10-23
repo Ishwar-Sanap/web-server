@@ -21,6 +21,7 @@ namespace http_engine::string_consts
     inline constexpr char reason_unauthorized[] = "Unauthorized";
     inline constexpr char reason_forbidden[] = "Forbidden";
     inline constexpr char reason_not_found[] = "Not Found";
+    inline constexpr char reason_method_not_allowed[] = "Method Not Allowed";
     inline constexpr char reason_too_maany_requests[] = "Too Many Requests";
     inline constexpr char reason_server_error[] = "Internal Server Error";
     inline constexpr char reason_bad_gateway[] = "Bad Gateway";

@@ -1,4 +1,5 @@
 #include "web_core/router.hpp"
+#include <algorithm>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -69,7 +70,7 @@ namespace web_core
         return true;
     }
 
-    bool Router::dispatch(http_engine::HttpRequest &request, http_engine::HttpResponse &response) const
+    Router::DispatchResult Router::dispatch(http_engine::HttpRequest &request, http_engine::HttpResponse &response) const
     {
         // First pass: exact routes take precedence.
         for (const auto &route : m_routes)
@@ -77,7 +78,7 @@ namespace web_core
             if (route.method == request.method() && route.pattern == request.path())
             {
                 route.handler(request, response);
-                return true;
+                return {DispatchResult::Status::HANDLED, {}};
             }
         }
 
@@ -95,11 +96,29 @@ namespace web_core
             {
                 request.setParams(std::move(params));
                 route.handler(request, response);
-                return true;
+                return {DispatchResult::Status::HANDLED, {}};
             }
         }
 
-        return false;
+        //builds the list of HTTP methods supported by routes that match the request’s path. 
+        //The router uses that list to form the Allow header when it returns 405 Method Not Allowed.
+        std::vector<std::string> allowed_methods;
+        for (const auto &route : m_routes)
+        {
+            RouteParams params;
+            if ((route.pattern == request.path() || matchPath(route.pattern, request.path(), params)) &&
+                std::find(allowed_methods.begin(), allowed_methods.end(), route.method) == allowed_methods.end())
+            {
+                allowed_methods.push_back(route.method);
+            }
+        }
+
+        if (!allowed_methods.empty())
+        {
+            return {DispatchResult::Status::METHOD_NOT_ALLOWED, std::move(allowed_methods)};
+        }
+
+        return {DispatchResult::Status::NOT_FOUND, {}};
     }
 };
 

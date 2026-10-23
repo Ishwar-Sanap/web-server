@@ -14,12 +14,25 @@ namespace web_core
     class Router
     {
     public:
+        struct DispatchResult
+        {
+            enum class Status
+            {
+                HANDLED,
+                NOT_FOUND,
+                METHOD_NOT_ALLOWED,
+            };
+
+            Status status;
+            std::vector<std::string> allowed_methods;
+        };
+
         using Handler = std::function<void(const http_engine::HttpRequest &request,
                                            http_engine::HttpResponse &response)>;
 
         void addRoute(const std::string &method, const std::string &pattern, Handler handler);
 
-        bool dispatch( http_engine::HttpRequest &request, http_engine::HttpResponse &response) const;
+        DispatchResult dispatch(http_engine::HttpRequest &request, http_engine::HttpResponse &response) const;
 
     private:
         struct Route

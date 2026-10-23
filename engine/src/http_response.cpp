@@ -24,6 +24,17 @@ namespace http_engine
         return m_headers;
     }
 
+    HttpResponse &HttpResponse::setHeader(const std::string &name, const std::string &value)
+    {
+        if (m_header_sent)
+        {
+            throw std::runtime_error("Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client");
+        }
+
+        m_headers[name] = value;
+        return *this;
+    }
+
     HttpResponse &HttpResponse::send(const std::string &body)
     {
         if (m_header_sent)
@@ -75,6 +86,9 @@ namespace http_engine
             break;
         case 404:
             this->m_reason = string_consts::reason_not_found;
+            break;
+        case 405:
+            this->m_reason = string_consts::reason_method_not_allowed;
             break;
         case 429:
             this->m_reason = string_consts::reason_too_maany_requests;

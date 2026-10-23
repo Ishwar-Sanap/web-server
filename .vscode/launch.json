@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug hello_server",
+            "name": "rest_api",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/references/hello_server",
+            "program": "${workspaceFolder}/references/rest_api",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

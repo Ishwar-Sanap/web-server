@@ -17,6 +17,7 @@ namespace http_engine
         std::unordered_map<std::string, std::string> m_headers;  // Metadata describing the response
         std::string m_body;                                      // Actual response content
     public:
+        HttpResponse &setHeader(const std::string &name, const std::string &value);
         HttpResponse &send(const std::string &body);
         HttpResponse &json(const nlohmann::json &body);
         HttpResponse &status(int code);

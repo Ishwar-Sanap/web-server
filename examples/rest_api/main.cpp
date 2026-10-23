@@ -27,7 +27,7 @@ int main()
         // res.send("Hello"); // If we call send earilier then next time if you call it will gives error
     });
 
-    app.get("/user", [](const auto&req, auto&res){
+    app.get("/users", [](const auto&req, auto&res){
         res.json({{"id" , "05" }, {"name", "Ishwar"}, {"active", true}});
     });
 
