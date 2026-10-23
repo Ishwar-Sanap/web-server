@@ -43,10 +43,25 @@ int main()
         res.json(*user);
     });
 
-    app.get("/posts", [&data](const auto &, auto &res) {
-        res.json(data.list("posts"));
+    //GET /posts?page=1&limit=10&sort=asc
+    app.get("/posts", [&data](const auto &req, auto &res) {
+        try
+        {
+            const std::string page = req.query("page");
+            const std::string limit = req.query("limit");
+            const std::string sort = req.query("sort");
+            
+            res.json({{"data", data.list("posts")}, {"page", page} , {"limit", limit} , {"sort", sort}});
+        }
+        catch(const std::exception& e)
+        {
+            res.status(404).json({{"error", "Query param not found"}});
+            return;
+        }
+        
     });
 
+    //GET /posts/1
     app.get("/posts/:id", [&data](const auto &req, auto &res) {
         const nlohmann::json *post = data.find("posts", req.param("id"));
         if (post == nullptr)

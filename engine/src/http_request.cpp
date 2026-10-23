@@ -4,13 +4,18 @@
 namespace http_engine
 {
     HttpRequest::HttpRequest() {}
-    HttpRequest::HttpRequest(const std::string &method, const std::string &path, const std::string &version, const std::unordered_map<std::string, std::string> &headers, const std::string &body) : m_method(method), m_path(path), m_version(version), m_headers(std::move(headers)), m_body(body)
+    HttpRequest::HttpRequest(const std::string &method, const std::string &path, const std::string &version, const std::unordered_map<std::string, std::string> &headers, const std::string &body, const QueryParams &params) : m_method(method), m_path(path), m_version(version), m_headers(std::move(headers)), m_body(body), m_query_params(std::move(params))
     {
     }
 
     std::string HttpRequest::param(const std::string &key) const
     {
         return m_params.at(key);
+    }
+
+    std::string HttpRequest::query(const std::string &key) const
+    {
+        return m_query_params.at(key);
     }
 
     void HttpRequest::setParams(const RouteParams &params)
@@ -43,7 +48,8 @@ namespace http_engine
         if (m_headers.find(key) != m_headers.end())
             return m_headers.at(key);
 
-        else return "";
+        else
+            return "";
     }
     void HttpRequest::printRequest()
     {

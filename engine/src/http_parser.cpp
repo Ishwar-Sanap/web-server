@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <string_view>
 #include <limits>
 #include <system_error>
@@ -101,6 +102,41 @@ namespace http_engine
         return result;
     }
 
+    void parse_query_params(std::string_view path, QueryParams &params)
+    {
+        const std::size_t q_start = path.find("?");
+
+        if (q_start == std::string_view::npos)
+            return;
+
+        // GET /products?category=books&sort=price&page=2
+        const std::string_view query = path.substr(q_start + 1);
+        const std::string query_str = std::string(query);
+        std::stringstream stream(query_str);
+        std::string segment;
+
+        while (std::getline(stream, segment, '&'))
+        {
+            if (!segment.empty())
+            {
+                const std::size_t val_start_pos = segment.find("=");
+
+                //"=" not found means vlaue is not exist 
+                if(val_start_pos == std::string::npos)
+                {
+                    params[segment] = ""; // empty value
+                }
+                else
+                {
+                    const std::string key = segment.substr(0, val_start_pos);
+                    const std::string val = segment.substr(val_start_pos + 1);
+                    params[key] = val;
+                }
+
+            }
+        }
+    }
+
     ParseResult HttpParser::parse(std::string_view raw_request, HttpRequest &request, std::size_t &bytes_consumed) const
     {
         bytes_consumed = 0;
@@ -159,8 +195,8 @@ namespace http_engine
             return ParseResult::BADREQUEST;
 
         const std::string_view method = request_line.substr(0, first_space);
-        const std::string_view path = request_line.substr(first_space + 1, second_space - first_space - 1);
         const std::string_view version = request_line.substr(second_space + 1);
+        std::string_view path = request_line.substr(first_space + 1, second_space - first_space - 1);
 
         if (!valid_method(method) || path.find_first_of(" \t\r\n") != std::string_view::npos || path.find_first_of("\r\n") != std::string_view::npos)
             return ParseResult::BADREQUEST;
@@ -261,8 +297,16 @@ namespace http_engine
 
         std::string body = std::string(raw_request.substr(body_start, content_length));
 
+        // parse query params
+        QueryParams q_params;
+        parse_query_params(path, q_params);
+        if(!q_params.empty())
+        {
+            std::size_t q_start = path.find("?");
+            path = path.substr(0, q_start);
+        }
         // valid request available
-        HttpRequest parsed_request(std::string(method), std::string(path), std::string(version), std::move(headers), body);
+        HttpRequest parsed_request(std::string(method), std::string(path), std::string(version), std::move(headers), body, std::move(q_params));
         request = std::move(parsed_request);
         bytes_consumed = total_size;
 
