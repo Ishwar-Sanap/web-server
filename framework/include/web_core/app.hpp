@@ -21,5 +21,6 @@ namespace web_core
         void put(const std::string &pattern, Router::Handler handler);
         void patch(const std::string &pattern, Router::Handler handler);
         void delete_(const std::string &pattern, Router::Handler handler);
+        void use(Router::Middleware middleware);
     };
 }

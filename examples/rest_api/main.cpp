@@ -10,6 +10,27 @@ int main()
     web_core::App app;
     rest_api::DummyDataStore data;
 
+    app.use([](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
+        std::cout<<"Middleware1 called"<<std::endl;
+        return true;  // true : called next middleware or matching route handler  , false : The middleware chain stops, not furter middleware and router handler will be called
+    });
+
+    app.use([](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
+        std::cout<<"Middleware2 called, authenticated user"<<std::endl;
+        return true;
+    });
+
+    // app.use([](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
+    //     std::cout<<"Middleware3 called"<<std::endl;
+    //     res.status(401).send("Unauthorized");
+    //     return false;  
+    // });
+
+    // app.use([](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
+    //       std::cout<<"Middleware4 called"<<std::endl;
+    //     return false;  // Gives [Internal Server Error: middleware did not call next() or send a response.]
+    // });
+
     app.get("/hello", [](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
        res.send("Hello, World");
     });

@@ -35,6 +35,11 @@ namespace http_engine
         return *this;
     }
 
+    bool HttpResponse::hasHeaderSent() const
+    {
+        return m_header_sent;
+    }
+
     HttpResponse &HttpResponse::send(const std::string &body)
     {
         if (m_header_sent)
@@ -57,7 +62,7 @@ namespace http_engine
 
         this->m_headers[string_consts::content_type_header] = string_consts::media_type_application_json;
         this->m_body = body.dump();
-        
+
         this->m_header_sent = true;
         return *this;
     }

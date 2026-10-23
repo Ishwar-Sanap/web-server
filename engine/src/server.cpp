@@ -146,7 +146,7 @@ namespace http_engine
         {
             const web_core::Router::DispatchResult result = m_router->dispatch(request, response);
 
-            if (result.status == web_core::Router::DispatchResult::Status::NOT_FOUND)
+            if (result.status == web_core::Router::DispatchResult::Status::ROUTE_NOT_FOUND)
             {
                 const std::string body = "Cannot " + request.method() + " " + request.path();
                 response.status(404).send(body);
@@ -166,6 +166,11 @@ namespace http_engine
                 response.setHeader("Allow", allowed_methods)
                     .status(405)
                     .send("Method Not Allowed");
+            }
+            else if (result.status == web_core::Router::DispatchResult::Status::MIDDLEWARE_NOT_SENT_RESP)
+            {
+                response.status(500).send("Internal Server Error: middleware did not call next() "
+                                          "or send a response.");
             }
         }
 

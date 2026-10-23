@@ -26,5 +26,6 @@ namespace http_engine
         std::string reason() const;
         std::string body() const;
         const std::unordered_map<std::string, std::string> &headers() const;
+        bool hasHeaderSent() const;
     };
 }

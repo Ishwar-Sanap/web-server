@@ -38,4 +38,9 @@ namespace web_core
     {
         m_router->addRoute("DELETE", pattern, handler);
     }
+
+    void App::use(Router::Middleware middleware)
+    {
+        m_router->addMiddleWare(middleware);
+    }
 }

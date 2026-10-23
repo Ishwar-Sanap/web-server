@@ -28,6 +28,12 @@ namespace web_core
         m_routes.push_back({method, pattern, std::move(handler)});
     }
 
+    void Router::addMiddleWare(Middleware middleware)
+    {
+        // stored middleware callback functions, in order they are registered
+        m_middlewares.push_back(std::move(middleware));
+    }
+
     // Compare the incoming path with the registered pattern one segment at a time
     bool Router::matchPath(const std::string &pattern, const std::string &path, RouteParams &params)
     {
@@ -72,13 +78,27 @@ namespace web_core
 
     Router::DispatchResult Router::dispatch(http_engine::HttpRequest &request, http_engine::HttpResponse &response) const
     {
+        // Run all registered global middlewares before executing route handlers
+        for (const auto &middleware : m_middlewares)
+        {
+            bool callNext = middleware(request, response);
+            if (!callNext)
+            {
+                if (response.hasHeaderSent())
+                    return {DispatchResult::Status::MIDDLEWARE_HANDLED, {}};
+
+                else
+                    return {DispatchResult::Status::MIDDLEWARE_NOT_SENT_RESP, {}};
+            }
+        }
+
         // First pass: exact routes take precedence.
         for (const auto &route : m_routes)
         {
             if (route.method == request.method() && route.pattern == request.path())
             {
                 route.handler(request, response);
-                return {DispatchResult::Status::HANDLED, {}};
+                return {DispatchResult::Status::ROUTER_HANDLED, {}};
             }
         }
 
@@ -96,12 +116,12 @@ namespace web_core
             {
                 request.setParams(std::move(params));
                 route.handler(request, response);
-                return {DispatchResult::Status::HANDLED, {}};
+                return {DispatchResult::Status::ROUTER_HANDLED, {}};
             }
         }
 
-        //builds the list of HTTP methods supported by routes that match the request’s path. 
-        //The router uses that list to form the Allow header when it returns 405 Method Not Allowed.
+        // builds the list of HTTP methods supported by routes that match the request’s path.
+        // The router uses that list to form the Allow header when it returns 405 Method Not Allowed.
         std::vector<std::string> allowed_methods;
         for (const auto &route : m_routes)
         {
@@ -118,7 +138,7 @@ namespace web_core
             return {DispatchResult::Status::METHOD_NOT_ALLOWED, std::move(allowed_methods)};
         }
 
-        return {DispatchResult::Status::NOT_FOUND, {}};
+        return {DispatchResult::Status::ROUTE_NOT_FOUND, {}};
     }
 };
 
