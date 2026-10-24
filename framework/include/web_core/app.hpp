@@ -22,5 +22,6 @@ namespace web_core
         void patch(const std::string &pattern, Router::Handler handler);
         void delete_(const std::string &pattern, Router::Handler handler);
         void use(Router::Middleware middleware);
+        void serveStatic(const std::string& dir);
     };
 }

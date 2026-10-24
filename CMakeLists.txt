@@ -15,5 +15,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})  # executables
 
 add_subdirectory(engine)
 add_subdirectory(framework)
-# add_subdirectory(examples/hello_server)
+add_subdirectory(examples/hello_server)
 add_subdirectory(examples/rest_api)

@@ -47,7 +47,10 @@ namespace http_engine
             throw std::runtime_error("Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client");
         }
 
-        this->m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
+        if (m_headers.find(string_consts::content_type_header) == m_headers.end())
+        {
+            this->m_headers[string_consts::content_type_header] = string_consts::media_type_text_plain;
+        }
         this->m_body = std::move(body);
 
         this->m_header_sent = true;
