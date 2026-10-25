@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include "web_core/app.hpp"
 #include "dummy_data.hpp"
@@ -9,6 +10,7 @@ int main()
 {
     web_core::App app;
     rest_api::DummyDataStore data;
+    std::mutex data_mutex;
 
     app.use([](const http_engine::HttpRequest &req, http_engine::HttpResponse &res) {
         std::cout<<"Middleware1 called"<<std::endl;
@@ -50,11 +52,13 @@ int main()
         // res.send("Hello"); // If we call send earilier then next time if you call it will gives error
     });
 
-    app.get("/users", [&data](const auto &, auto &res) {
+    app.get("/users", [&data, &data_mutex](const auto &, auto &res) {
+        std::lock_guard<std::mutex> lock(data_mutex);  //data shares a mutable in-memory datastore. to protects operations on that datastore a std::mutex and std::lock_guard used
         res.json(data.list("users"));
     });
 
-    app.get("/users/:id", [&data](const auto &req, auto &res) {
+    app.get("/users/:id", [&data, &data_mutex](const auto &req, auto &res) {
+        std::lock_guard<std::mutex> lock(data_mutex);
         const nlohmann::json *user = data.find("users", req.param("id"));
         if (user == nullptr)
         {
@@ -65,9 +69,10 @@ int main()
     });
 
     //GET /posts?page=1&limit=10&sort=asc
-    app.get("/posts", [&data](const auto &req, auto &res) {
+    app.get("/posts", [&data, &data_mutex](const auto &req, auto &res) {
         try
         {
+            std::lock_guard<std::mutex> lock(data_mutex);
             const std::string page = req.query("page");
             const std::string limit = req.query("limit");
             const std::string sort = req.query("sort");
@@ -83,7 +88,8 @@ int main()
     });
 
     //GET /posts/1
-    app.get("/posts/:id", [&data](const auto &req, auto &res) {
+    app.get("/posts/:id", [&data, &data_mutex](const auto &req, auto &res) {
+        std::lock_guard<std::mutex> lock(data_mutex);
         const nlohmann::json *post = data.find("posts", req.param("id"));
         if (post == nullptr)
         {
@@ -93,10 +99,11 @@ int main()
         res.json(*post);
     });
 
-    app.post("/users", [&data](const auto &req, auto &res) {
+    app.post("/users", [&data, &data_mutex](const auto &req, auto &res) {
         try
         {
             const nlohmann::json user = nlohmann::json::parse(req.body());
+            std::lock_guard<std::mutex> lock(data_mutex);
             const nlohmann::json created_user = data.create("users", user);
             res.status(201).json({{"message", "User created successfully"}, {"user", created_user}});
         }
@@ -110,10 +117,11 @@ int main()
         }
     });
 
-    app.put("/users/:id", [&data](const auto &req, auto &res) {
+    app.put("/users/:id", [&data, &data_mutex](const auto &req, auto &res) {
         try
         {
             const nlohmann::json user = nlohmann::json::parse(req.body());
+            std::lock_guard<std::mutex> lock(data_mutex);
             nlohmann::json *replaced_user = data.replace("users", req.param("id"), user);
             if (replaced_user == nullptr)
             {
@@ -132,10 +140,11 @@ int main()
         }
     });
 
-    app.patch("/users/:id", [&data](const auto &req, auto &res) {
+    app.patch("/users/:id", [&data, &data_mutex](const auto &req, auto &res) {
         try
         {
             const nlohmann::json fields = nlohmann::json::parse(req.body());
+            std::lock_guard<std::mutex> lock(data_mutex);
             nlohmann::json *updated_user = data.update("users", req.param("id"), fields);
             if (updated_user == nullptr)
             {
@@ -154,7 +163,8 @@ int main()
         }
     });
 
-    app.delete_("/users/:id", [&data](const auto &req, auto &res) {
+    app.delete_("/users/:id", [&data, &data_mutex](const auto &req, auto &res) {
+        std::lock_guard<std::mutex> lock(data_mutex);
         if (!data.erase("users", req.param("id")))
         {
             res.status(404).json({{"error", "User not found"}});

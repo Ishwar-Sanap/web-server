@@ -24,11 +24,13 @@ namespace http_engine
         if (m_server_fd != -1)
             return true;
 
-        m_server_fd = socket(AF_INET, SOCK_STREAM, 0); // create an IPv4 tcp socket
+        // Nonblocking mode lets the event loop accept without waiting;
+        // CLOEXEC keeps the listening socket out of child processes.
+        m_server_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
 
         if (m_server_fd == -1)
         {
-            std::cerr << "socket() failed: " << std::strerror(m_server_fd) << "\n";
+            std::cerr << "socket() failed: " << std::strerror(errno) << "\n";
             return false;
         }
 
@@ -78,12 +80,14 @@ namespace http_engine
         sockaddr_in client_address{};
         socklen_t client_length = sizeof(client_address);
 
-        // Wait for client connection
-        int client_fd = accept(m_server_fd, (struct sockaddr *)&client_address, &client_length);
+        // Give each client socket the same nonblocking and close-on-exec behavior.
+        int client_fd = accept4(m_server_fd, (struct sockaddr *)&client_address, &client_length,
+                                SOCK_NONBLOCK | SOCK_CLOEXEC);
 
         if (client_fd == -1)
         {
-            if (errno != EINTR)
+            // EINTR is retryable; EAGAIN/EWOULDBLOCK means the nonblocking accept queue is empty.
+            if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK)
             {
                 std::cerr << "accept() failed: " << std::strerror(errno) << "\n";
             }
@@ -92,6 +96,11 @@ namespace http_engine
 
         std::cout << "Client connected fd: " << client_fd << " \n";
         return client_fd;
+    }
+
+    int TcpListener::fileDescriptor() const
+    {
+        return m_server_fd;
     }
 
     void TcpListener::stop()

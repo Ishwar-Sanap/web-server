@@ -19,5 +19,6 @@ namespace http_engine
         bool start();
         void stop();
         int acceptClient();
+        int fileDescriptor() const;
     };
 }
